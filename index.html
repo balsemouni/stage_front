@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Circle in Rectangle with Colored Outside</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .image-container {
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .image-background {
+        width: 100%;
+        height: 100%;
+        background-image: url("./my-app/public/images/bc6f59ba6fd6df21ae13c4414d17c997.jpg");
+        background-size: cover;
+      }
+
+      .content_1 {
+        position: absolute;
+        top: 0;
+        left: 21rem;
+        width: 40%;
+        height: 10%;
+        background-color: #dbdcdd;
+        -webkit-mask: radial-gradient(
+          circle at 0% 100%,
+          transparent 16%,
+          black 7%
+        );
+        mask: radial-gradient(circle at 0% 100%, transparent 16%, black 7%);
+      }
+
+      .content_2 {
+        position: absolute;
+        top: 0;
+        left: 37rem;
+        width: 40%;
+        height: 10%;
+        background-color: #dbdcdd;
+        -webkit-mask: radial-gradient(
+          circle at 100% 100%,
+          transparent 16%,
+          black 7%
+        );
+        mask: radial-gradient(circle at 100% 100%, transparent 16%, black 7%);
+      }
+
+      .content_3 {
+        position: absolute;
+        top: 5%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 35%;
+        z-index: 9999;
+        background-color: #dbdcdd;
+        display: flex;
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
+        padding: 0; /* Add padding for spacing */
+      }
+
+      .nav-links {
+        list-style: none;
+        display: flex;
+        gap: 2rem; /* Space between links */
+      }
+
+      .nav-link {
+        text-decoration: none;
+        color: black; /* Match background color */
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+      h1 {
+        padding: 0;
+        margin: 0;
+      }
+      .nav-link:hover {
+        color: #0071e3;
+      }
+      .text-overlay {
+        position: absolute;
+        top: 50%;
+        left: 5%;
+        transform: translateY(-50%);
+        color: #1a1a1a;
+        font-family: "Georgia", serif;
+        padding: 2rem;
+        border-radius: 10px;
+        max-width: 30%;
+      }
+
+      .text-overlay h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #dbdcdd;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .text-overlay p {
+        font-size: 1.5rem;
+        line-height: 1.6;
+        color: #666;
+      }
+      @media (max-width: 768px) {
+        .content_1,
+        .content_2 {
+          width: 45vw;
+          height: 20vh;
+          top: 10%;
+        }
+
+        .content_3 {
+          width: 90%;
+          padding: 0.8rem 1rem;
+        }
+
+        .nav-links {
+          gap: 1.5rem;
+        }
+
+        .nav-link {
+          font-size: 14px;
+        }
+      }
+      @media (max-width: 480px) {
+        .content_1,
+        .content_2 {
+          width: 50vw;
+          height: 25vh;
+          top: 15%;
+        }
+
+        .content_3 {
+          padding: 0.5rem 0.8rem;
+        }
+
+        .nav-links {
+          gap: 1rem;
+        }
+
+        .nav-link {
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="image-container">
+      <div class="image-background">
+        <div class="text-overlay">
+          <h1>Wanderwise</h1>
+          <p>Where art, history, and romance meet.</p>
+        </div>
+        <div class="content_1"></div>
+        <div class="content_2"></div>
+
+        <!-- Navbar container -->
+        <div class="content_3">
+          <ul class="nav-links">
+            <li><a href="#" class="nav-link">List your property</a></li>
+            <li><a href="#" class="nav-link">Support</a></li>
+            <li><a href="#" class="nav-link">Sign in</a></li>
+            <li><a href="#" class="nav-link">Trips</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

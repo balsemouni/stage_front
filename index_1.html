@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Destination Predictor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .progress-container {
+            padding: 20px 40px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .progress-bar {
+            position: absolute;
+            height: 6px;
+            background: #e0e0e0;
+            top: 50%;
+            left: 40px;
+            right: 40px;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3498db;
+            width: 25%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #777;
+            z-index: 2;
+            position: relative;
+        }
+
+        .progress-step.active {
+            background: #3498db;
+            color: white;
+            box-shadow: 0 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .step-container {
+            padding: 40px;
+            min-height: 500px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            position: relative;
+        }
+
+        .step h2:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: #3498db;
+            border-radius: 2px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .option-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            height: 260px;
+        }
+
+        .option-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .option-card.selected {
+            transform: translateY(-5px);
+            box-shadow: 0 0 0 4px #3498db, 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-image {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-label {
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(52, 152, 219, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .option-card.selected .card-overlay {
+            opacity: 1;
+        }
+
+        .card-overlay i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-prev {
+            background: #e0e0e0;
+            color: #555;
+        }
+
+        .btn-prev:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-next {
+            background: #3498db;
+            color: white;
+            margin-left: auto;
+        }
+
+        .btn-next:hover {
+            background: #2980b9;
+        }
+
+        .result-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .result-image {
+            width: 300px;
+            height: 200px;
+            border-radius: 15px;
+            margin: 20px auto;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-title {
+            font-size: 2.5rem;
+            color: #3498db;
+            margin: 20px 0;
+        }
+
+        .result-description {
+            font-size: 1.2rem;
+            color: #555;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        .btn-restart {
+            background: #2ecc71;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn-restart:hover {
+            background: #27ae60;
+            transform: translateY(-3px);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #777;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .options-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
+            }
+            
+            .step-container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-globe-americas"></i> Travel Destination Predictor</h1>
+            <p>Answer a few questions to find your perfect vacation spot</p>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-step active">1</div>
+            <div class="progress-step">2</div>
+            <div class="progress-step">3</div>
+            <div class="progress-step">4</div>
+        </div>
+        
+        <div class="step-container">
+            <!-- Step 1: Activity Type -->
+            <div class="step active" id="step1">
+                <h2>What type of activities do you enjoy?</h2>
+                <div class="options-grid">
+                    <div class="option-card" data-value="nature">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Hiking & Nature</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="beach">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Beach & Relaxation</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="culture">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1507699622108-4be3abd695ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Cultural & Historical</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="adventure">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1534188753411-3e3646eb0368?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Adventure Sports</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-next" id="next1">Next <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Budget -->
+            <div class="step" id="step2">
+                <h2>What's your travel budget per person?</h2>
+                <div class="options-grid">
+                    <div class="option-card" data-value="budget">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Budget ($500 - $1,500)</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="midrange">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Mid-Range ($1,500 - $3,500)</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="luxury">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Luxury ($3,500+)</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-prev" id="prev2"><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button class="btn btn-next" id="next2">Next <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Continent -->
+            <div class="step" id="step3">
+                <h2>Which continent would you like to visit?</h2>
+                <div class="options-grid">
+                    <div class="option-card" data-value="europe">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1467269204594-9661b134dd2b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Europe</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="asia">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1533575770077-052fa2c609fc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Asia</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="northamerica">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">North America</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="southamerica">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">South America</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-prev" id="prev3"><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button class="btn btn-next" id="next3">Next <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            
+            <!-- Step 4: Travel Style -->
+            <div class="step" id="step4">
+                <h2>What's your travel style?</h2>
+                <div class="options-grid">
+                    <div class="option-card" data-value="solo">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1503220317375-aaad61436b1b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Solo Travel</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="couple">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Romantic Getaway</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="family">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Family Vacation</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="option-card" data-value="friends">
+                        <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1533575770077-052fa2c609fc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="card-label">Friends Adventure</div>
+                        <div class="card-overlay">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-prev" id="prev4"><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button class="btn btn-next" id="next4">Find My Destination <i class="fas fa-search-location"></i></button>
+                </div>
+            </div>
+            
+            <!-- Result Step -->
+            <div class="step" id="result">
+                <div class="result-container">
+                    <h2>Your Perfect Destination Is...</h2>
+                    <div class="result-title" id="destination">Bali, Indonesia</div>
+                    <div class="result-image" id="resultImage" style="background-image: url('https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80');"></div>
+                    <div class="result-description" id="destinationDescription">
+                        Bali is the perfect match for your preferences! With its stunning beaches, lush jungles, 
+                        vibrant culture, and affordable luxury, it offers everything you're looking for in a vacation. 
+                        You'll enjoy exploring ancient temples, relaxing on beautiful beaches, and experiencing 
+                        the unique Balinese hospitality.
+                    </div>
+                    <button class="btn-restart" id="restartBtn"><i class="fas fa-sync-alt"></i> Start Again</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2023 Travel Destination Predictor | Find Your Perfect Vacation Spot</p>
+        </div>
+    </div>
+
+    <script>
+        // Store user selections
+        const userSelections = {
+            activity: null,
+            budget: null,
+            continent: null,
+            style: null
+        };
+
+        // DOM Elements
+        const progressFill = document.getElementById('progressFill');
+        const progressSteps = document.querySelectorAll('.progress-step');
+        const steps = document.querySelectorAll('.step');
+        const optionCards = document.querySelectorAll('.option-card');
+        const nextButtons = document.querySelectorAll('.btn-next');
+        const prevButtons = document.querySelectorAll('.btn-prev');
+        const restartBtn = document.getElementById('restartBtn');
+        const destinationElement = document.getElementById('destination');
+        const destinationDescription = document.getElementById('destinationDescription');
+        const resultImage = document.getElementById('resultImage');
+
+        // Current step tracker
+        let currentStep = 0;
+
+        // Function to update progress bar
+        function updateProgress() {
+            const progress = (currentStep / (steps.length - 1)) * 100;
+            progressFill.style.width = `${progress}%`;
+            
+            progressSteps.forEach((step, index) => {
+                if (index <= currentStep) {
+                    step.classList.add('active');
+                } else {
+                    step.classList.remove('active');
+                }
+            });
+        }
+
+        // Function to show step
+        function showStep(stepIndex) {
+            steps.forEach((step, index) => {
+                step.classList.toggle('active', index === stepIndex);
+            });
+            currentStep = stepIndex;
+            updateProgress();
+        }
+
+        // Option selection
+        optionCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selected class from siblings
+                const siblings = this.parentElement.children;
+                for (let sibling of siblings) {
+                    if (sibling !== this) sibling.classList.remove('selected');
+                }
+                
+                // Toggle selected class
+                this.classList.toggle('selected');
+                
+                // Store selection based on step
+                const step = this.closest('.step');
+                if (step.id === 'step1') userSelections.activity = this.dataset.value;
+                if (step.id === 'step2') userSelections.budget = this.dataset.value;
+                if (step.id === 'step3') userSelections.continent = this.dataset.value;
+                if (step.id === 'step4') userSelections.style = this.dataset.value;
+            });
+        });
+
+        // Next button functionality
+        nextButtons.forEach((button, index) => {
+            button.addEventListener('click', function() {
+                // For step 4, show result instead of next step
+                if (currentStep === 3) {
+                    calculateDestination();
+                    showStep(4);
+                    return;
+                }
+                
+                showStep(currentStep + 1);
+            });
+        });
+
+        // Previous button functionality
+        prevButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                showStep(currentStep - 1);
+            });
+        });
+
+        // Restart button
+        restartBtn.addEventListener('click', function() {
+            // Reset selections
+            userSelections.activity = null;
+            userSelections.budget = null;
+            userSelections.continent = null;
+            userSelections.style = null;
+            
+            // Reset UI
+            optionCards.forEach(card => card.classList.remove('selected'));
+            showStep(0);
+        });
+
+        // Calculate destination based on selections
+        function calculateDestination() {
+            // This would be more complex in a real application
+            // For demo purposes, we'll use a simple algorithm
+            
+            // Default destination
+            let destination = "Bali, Indonesia";
+            let description = "Bali is the perfect match for your preferences! With its stunning beaches, lush jungles, vibrant culture, and affordable luxury, it offers everything you're looking for in a vacation. You'll enjoy exploring ancient temples, relaxing on beautiful beaches, and experiencing the unique Balinese hospitality.";
+            let imageUrl = "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80";
+            
+            // Customize based on selections
+            if (userSelections.continent === "europe") {
+                destination = "Santorini, Greece";
+                description = "Santorini offers the perfect European getaway with its iconic white-washed buildings, stunning sunsets, and crystal-clear waters. Enjoy romantic walks through charming villages, delicious Mediterranean cuisine, and breathtaking views of the caldera.";
+                imageUrl = "https://images.unsplash.com/photo-1534482421-64566f976cfa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80";
+            } else if (userSelections.activity === "adventure" && userSelections.continent === "southamerica") {
+                destination = "Patagonia, Argentina";
+                description = "Patagonia is the ultimate adventure destination with its dramatic landscapes, towering mountains, and pristine glaciers. Hike through breathtaking national parks, witness incredible wildlife, and experience the raw beauty of one of Earth's last wilderness frontiers.";
+                imageUrl = "https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80";
+            } else if (userSelections.budget === "luxury" && userSelections.style === "couple") {
+                destination = "Maldives";
+                description = "The Maldives offers the ultimate luxury romantic getaway with its overwater bungalows, private beaches, and crystal-clear turquoise waters. Experience world-class spa treatments, gourmet dining, and unforgettable sunsets in this tropical paradise.";
+                imageUrl = "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80";
+            } else if (userSelections.activity === "culture" && userSelections.continent === "asia") {
+                destination = "Kyoto, Japan";
+                description = "Kyoto is the cultural heart of Japan, offering a perfect blend of ancient traditions and modern comforts. Explore historic temples, stroll through beautiful Zen gardens, experience traditional tea ceremonies, and witness the beauty of cherry blossoms in spring.";
+                imageUrl = "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80";
+            }
+            
+            // Update result elements
+            destinationElement.textContent = destination;
+            destinationDescription.textContent = description;
+            resultImage.style.backgroundImage = `url('${imageUrl}')`;
+        }
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>
